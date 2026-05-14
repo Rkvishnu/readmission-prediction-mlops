@@ -1,0 +1,27 @@
+data:
+  target_column: readmitted
+  test_size: 0.2
+  random_state: 42
+
+models:
+  random_forest:
+    n_estimators: 200
+    max_depth: 8
+    random_state: 42
+  xgboost:
+    n_estimators: 250
+    max_depth: 4
+    learning_rate: 0.05
+    subsample: 0.9
+    colsample_bytree: 0.9
+    eval_metric: logloss
+    random_state: 42
+  gradient_boosting:
+    max_iter: 250
+    max_leaf_nodes: 31
+    learning_rate: 0.05
+    random_state: 42
+
+evaluation:
+  primary_metric: roc_auc
+  min_roc_auc: 0.65

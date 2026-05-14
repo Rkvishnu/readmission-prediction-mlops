@@ -1,0 +1,15 @@
+.git
+.dvc/tmp
+.venv
+.matplotlib
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.DS_Store
+data
+mlruns
+notebooks
+reports/drift
+reports/figures
+

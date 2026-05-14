@@ -1,0 +1,7 @@
+experiment_name: hospital-readmission
+registered_model_name: readmission-risk
+random_state: 42
+candidate_models:
+  - random_forest
+  - xgboost
+  - gradient_boosting

@@ -1,0 +1,14 @@
+source_url: https://archive.ics.uci.edu/static/public/296/diabetes+130-us+hospitals+for+years+1999-2008.zip
+raw_data_path: data/raw/diabetic_data.csv
+ids_mapping_path: data/raw/IDS_mapping.csv
+processed_train_path: data/processed/train.csv
+processed_test_path: data/processed/test.csv
+reference_data_path: data/reference/reference.csv
+target_column: readmitted
+drop_columns:
+  - encounter_id
+  - patient_nbr
+categorical_columns:
+  - admission_type_id
+  - discharge_disposition_id
+  - admission_source_id

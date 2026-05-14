@@ -1,0 +1,26 @@
+stages:
+  prepare:
+    cmd: python -m readmission.data.preprocess
+    deps:
+      - src/readmission/data/preprocess.py
+      - data/raw/diabetic_data.csv
+      - configs/data_config.yaml
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/reference/reference.csv
+  train:
+    cmd: MPLCONFIGDIR=.matplotlib python scripts/run_training.py
+    deps:
+      - src/readmission/models/train.py
+      - src/readmission/features/build_features.py
+      - data/processed
+      - params.yaml
+    outs:
+      - models/readmission_model.joblib
+      - reports/metrics/model_comparison.json
+      - reports/figures/classification_report.json
+      - reports/figures/confusion_matrix.png
+      - reports/figures/roc_curve.png
+    metrics:
+      - reports/metrics/training_metrics.json

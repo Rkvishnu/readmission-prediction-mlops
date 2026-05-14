@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: readmission-retraining
+  namespace: readmission-mlops
+spec:
+  schedule: "0 2 * * 0"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: training
+              image: readmission-training:latest
+              imagePullPolicy: IfNotPresent
+

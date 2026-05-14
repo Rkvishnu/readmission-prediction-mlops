@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: readmission-api
+  namespace: readmission-mlops
+spec:
+  rules:
+    - host: readmission.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: readmission-api
+                port:
+                  number: 80
+

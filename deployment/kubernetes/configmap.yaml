@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: readmission-api-config
+  namespace: readmission-mlops
+data:
+  APP_ENV: "production"
+  MODEL_URI: "models:/readmission-risk/Production"
+

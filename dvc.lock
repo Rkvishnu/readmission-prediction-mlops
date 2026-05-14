@@ -1,0 +1,75 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m readmission.data.preprocess
+    deps:
+    - path: configs/data_config.yaml
+      hash: md5
+      md5: cd8b6e3dfa79d85c5455425ee7a1cdb9
+      size: 504
+    - path: data/raw/diabetic_data.csv
+      hash: md5
+      md5: 502f0cc004e4cf71536ec2e61596e42f
+      size: 19159383
+    - path: src/readmission/data/preprocess.py
+      hash: md5
+      md5: 16f08405f3fad7dcbebf24687d4d080a
+      size: 2972
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 30bb40ff885b0fd3b046067b4359b5e8
+      size: 3221461
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 0314f815e9940ef974e3ef3c66f6952d
+      size: 12876907
+    - path: data/reference/reference.csv
+      hash: md5
+      md5: 57c257a10e5fb87d8c5fd91d88d6e26b
+      size: 781719
+  train:
+    cmd: MPLCONFIGDIR=.matplotlib python scripts/run_training.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: c26f995fd383beff75b424dc5a2edd11.dir
+      size: 16098369
+      nfiles: 3
+    - path: params.yaml
+      hash: md5
+      md5: dbf502ef1420e63f0efa5a8423d658ff
+      size: 487
+    - path: src/readmission/features/build_features.py
+      hash: md5
+      md5: 5d35a5548771303d4280755922f2179c
+      size: 1098
+    - path: src/readmission/models/train.py
+      hash: md5
+      md5: 4cccd468a246101e407129d2549525da
+      size: 8574
+    outs:
+    - path: models/readmission_model.joblib
+      hash: md5
+      md5: 42d94829755479b4bbd0dd6795772a08
+      size: 625946
+    - path: reports/figures/classification_report.json
+      hash: md5
+      md5: 7babf277254b977d293d6a678a7216d1
+      size: 626
+    - path: reports/figures/confusion_matrix.png
+      hash: md5
+      md5: 4dc866a9f809410a6eef856f01f5150c
+      size: 22960
+    - path: reports/figures/roc_curve.png
+      hash: md5
+      md5: 5defac473b17d013e76237933e97925c
+      size: 26463
+    - path: reports/metrics/model_comparison.json
+      hash: md5
+      md5: 707946c6fd169bb2a02ac49268eca982
+      size: 632
+    - path: reports/metrics/training_metrics.json
+      hash: md5
+      md5: 31c3f39b2a09d05964939da4e0f5bfa2
+      size: 196
