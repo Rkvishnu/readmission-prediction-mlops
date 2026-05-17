@@ -1,0 +1,48 @@
+name: Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    name: Generate drift report
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: make install PYTHON=python
+
+      - name: Prepare data
+        run: |
+          python scripts/download_data.py
+          python -m readmission.data.preprocess
+
+      - name: Generate Evidently drift report
+        run: make drift PYTHON=python
+
+      - name: Verify drift report artifacts
+        run: |
+          test -s reports/drift/data_drift_report.html
+          test -s reports/drift/data_drift_summary.json
+
+      - name: Upload drift report artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidently-drift-report
+          path: reports/drift/
+          if-no-files-found: error

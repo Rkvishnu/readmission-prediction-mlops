@@ -119,6 +119,11 @@ GitHub Actions runs the project quality gate on every push and pull request:
 
 The workflow lives at `.github/workflows/ci.yml`. Pull requests build the image without pushing it. Pushes to the default branch publish tags such as `latest`, branch name, and `sha-<commit>` to GitHub Container Registry.
 
+Additional lifecycle workflows:
+
+- `.github/workflows/train.yaml`: manually runs data preparation, model training, and metric threshold validation.
+- `.github/workflows/monitor.yml`: manually or weekly generates an Evidently drift report and uploads it as a workflow artifact.
+
 Run the API locally:
 
 ```bash
@@ -228,6 +233,21 @@ Clean up the raw manifest deployment:
 ```bash
 make k8s-delete
 ```
+
+## Drift Monitoring
+
+Generate an Evidently data drift report by comparing the reference training sample with the current processed test data:
+
+```bash
+make drift
+```
+
+Generated artifacts:
+
+- `reports/drift/data_drift_report.html`
+- `reports/drift/data_drift_summary.json`
+
+The report monitors stable clinical and serving features such as hospital stay length, lab procedure count, medication count, visit history, diagnosis count, and admission/discharge/source IDs. The JSON summary is designed for automation, while the HTML report is useful for review and portfolio screenshots.
 
 ## Dataset
 

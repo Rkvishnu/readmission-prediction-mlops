@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: install test lint train api docker-build compose-up compose-down compose-logs k8s-build k8s-deploy k8s-status k8s-port-forward k8s-delete helm-template helm-deploy
+.PHONY: install test lint train drift api docker-build compose-up compose-down compose-logs k8s-build k8s-deploy k8s-status k8s-port-forward k8s-delete helm-template helm-deploy
 
 install:
 	$(PYTHON) -m pip install --upgrade pip
@@ -14,6 +14,9 @@ lint:
 
 train:
 	$(PYTHON) scripts/run_training.py
+
+drift:
+	$(PYTHON) scripts/generate_drift_report.py
 
 api:
 	$(PYTHON) -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
