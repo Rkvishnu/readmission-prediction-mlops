@@ -5,6 +5,12 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+env:
+  APP_ENV: production
+  MLFLOW_TRACKING_URI: http://mlflow:5000
+  LOCAL_MODEL_PATH: models/readmission_model.joblib
+  MODEL_URI: ""
+
 service:
   type: ClusterIP
   port: 80
@@ -19,11 +25,27 @@ resources:
     memory: 256Mi
   limits:
     cpu: 500m
-    memory: 512Mi
+    memory: 768Mi
+
+probes:
+  readiness:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/metrics/"
+  prometheus.io/port: "8000"
 
 autoscaling:
   enabled: true
   minReplicas: 2
   maxReplicas: 5
   targetCPUUtilizationPercentage: 70
-

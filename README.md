@@ -107,6 +107,18 @@ make lint
 make test
 ```
 
+## CI/CD
+
+GitHub Actions runs the project quality gate on every push and pull request:
+
+- installs the Python project with development dependencies
+- runs Ruff linting across `src`, `api`, `tests`, `workflows`, and `scripts`
+- runs the unit and API test suite
+- builds the FastAPI Docker image from `deployment/docker/Dockerfile.api`
+- publishes the API image to GitHub Container Registry on default-branch pushes
+
+The workflow lives at `.github/workflows/ci.yml`. Pull requests build the image without pushing it. Pushes to the default branch publish tags such as `latest`, branch name, and `sha-<commit>` to GitHub Container Registry.
+
 Run the API locally:
 
 ```bash
@@ -163,6 +175,58 @@ Stop the stack:
 
 ```bash
 docker compose down
+```
+
+## Kubernetes
+
+You can deploy the API and supporting services to a local Kubernetes cluster using Docker Desktop Kubernetes or another local cluster.
+
+If `kubectl` returns `connection refused`, enable Kubernetes in Docker Desktop under Settings > Kubernetes, wait for it to start, and confirm:
+
+```bash
+kubectl config use-context docker-desktop
+kubectl cluster-info
+```
+
+Build the local API image:
+
+```bash
+make k8s-build
+```
+
+Deploy the raw Kubernetes manifests:
+
+```bash
+make k8s-deploy
+make k8s-status
+```
+
+Wait until the `readmission-api` pods are ready, then forward the service:
+
+```bash
+make k8s-port-forward
+```
+
+Open the API at `http://localhost:8000/docs` and test:
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/model-info
+```
+
+The Kubernetes API deployment includes readiness and liveness probes, CPU and memory requests/limits, and Prometheus scrape annotations for `/metrics/`.
+
+To deploy the Helm chart instead:
+
+```bash
+make helm-template
+make helm-deploy
+```
+
+Clean up the raw manifest deployment:
+
+```bash
+make k8s-delete
 ```
 
 ## Dataset

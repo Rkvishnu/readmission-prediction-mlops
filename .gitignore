@@ -8,6 +8,8 @@ __pycache__/
 .matplotlib/
 .ipynb_checkpoints/
 *.egg-info/
+.github/act-history.json
+act/
 mlflow.db
 mlruns/*
 !mlruns/.gitkeep

@@ -10,11 +10,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Prepare data
+        run: |
+          python scripts/download_data.py
+          python -m readmission.data.preprocess
       - name: Run training
+        env:
+          MPLCONFIGDIR: .matplotlib
         run: python scripts/run_training.py
-
+      - name: Validate training outputs
+        run: python scripts/validate_training_outputs.py --min-roc-auc 0.65 --min-recall 0.55

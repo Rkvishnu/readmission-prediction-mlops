@@ -2,6 +2,13 @@ import mlflow
 
 
 def load_registered_model(model_uri: str):
+    if model_uri.startswith("models:/") and "@" in model_uri:
+        model_reference = model_uri.removeprefix("models:/")
+        model_name, alias = model_reference.split("@", maxsplit=1)
+        client = mlflow.tracking.MlflowClient()
+        model_version = client.get_model_version_by_alias(model_name, alias)
+        return mlflow.sklearn.load_model(f"runs:/{model_version.run_id}/model")
+
     return mlflow.sklearn.load_model(model_uri)
 
 

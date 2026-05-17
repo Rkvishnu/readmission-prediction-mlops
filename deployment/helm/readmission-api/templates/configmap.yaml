@@ -3,5 +3,9 @@ kind: ConfigMap
 metadata:
   name: {{ .Chart.Name }}-config
 data:
-  APP_ENV: "production"
-
+  APP_ENV: {{ .Values.env.APP_ENV | quote }}
+  MLFLOW_TRACKING_URI: {{ .Values.env.MLFLOW_TRACKING_URI | quote }}
+  LOCAL_MODEL_PATH: {{ .Values.env.LOCAL_MODEL_PATH | quote }}
+  {{- if .Values.env.MODEL_URI }}
+  MODEL_URI: {{ .Values.env.MODEL_URI | quote }}
+  {{- end }}

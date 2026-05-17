@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: install test lint train api docker-build compose-up compose-down compose-logs
+.PHONY: install test lint train api docker-build compose-up compose-down compose-logs k8s-build k8s-deploy k8s-status k8s-port-forward k8s-delete helm-template helm-deploy
 
 install:
 	$(PYTHON) -m pip install --upgrade pip
@@ -29,3 +29,24 @@ compose-down:
 
 compose-logs:
 	docker compose logs -f
+
+k8s-build:
+	docker build -f deployment/docker/Dockerfile.api -t readmission-api:latest .
+
+k8s-deploy:
+	kubectl apply -f deployment/kubernetes
+
+k8s-status:
+	kubectl get all -n readmission-mlops
+
+k8s-port-forward:
+	kubectl port-forward -n readmission-mlops svc/readmission-api 8000:80
+
+k8s-delete:
+	kubectl delete -f deployment/kubernetes
+
+helm-template:
+	helm template readmission-api deployment/helm/readmission-api --namespace readmission-mlops
+
+helm-deploy:
+	helm upgrade --install readmission-api deployment/helm/readmission-api --namespace readmission-mlops --create-namespace

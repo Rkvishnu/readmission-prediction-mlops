@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - "codex/**"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/readmission-api
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: make install PYTHON=python
+
+      - name: Run lint
+        run: make lint PYTHON=python
+
+      - name: Run tests
+        run: make test PYTHON=python
+
+  docker-build:
+    name: Build and publish API image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare Docker image tags
+        id: image-tags
+        shell: bash
+        run: |
+          image="${REGISTRY}/${IMAGE_NAME}"
+          image="$(echo "$image" | tr '[:upper:]' '[:lower:]')"
+          short_sha="${GITHUB_SHA::7}"
+
+          tags=("${image}:sha-${short_sha}")
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            pr_number="${{ github.event.number }}"
+            tags+=("${image}:pr-${pr_number:-local}")
+          else
+            tags+=("${image}:${GITHUB_REF_NAME//\//-}")
+          fi
+
+          if [[ "${GITHUB_REF_NAME}" == "${{ github.event.repository.default_branch }}" ]]; then
+            tags+=("${image}:latest")
+          fi
+
+          {
+            echo "tags<<EOF"
+            printf '%s\n' "${tags[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build API Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deployment/docker/Dockerfile.api
+          push: ${{ github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch }}
+          tags: ${{ steps.image-tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

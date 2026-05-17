@@ -12,6 +12,10 @@ spec:
     metadata:
       labels:
         app: readmission-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics/"
+        prometheus.io/port: "8000"
     spec:
       containers:
         - name: api
@@ -19,7 +23,30 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
+              name: http
           envFrom:
             - configMapRef:
                 name: readmission-api-config
-
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi

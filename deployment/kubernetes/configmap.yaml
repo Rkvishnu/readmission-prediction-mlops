@@ -5,5 +5,5 @@ metadata:
   namespace: readmission-mlops
 data:
   APP_ENV: "production"
-  MODEL_URI: "models:/readmission-risk/Production"
-
+  MLFLOW_TRACKING_URI: "http://mlflow:5000"
+  LOCAL_MODEL_PATH: "models/readmission_model.joblib"
