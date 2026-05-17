@@ -123,6 +123,7 @@ Additional lifecycle workflows:
 
 - `.github/workflows/train.yaml`: manually runs data preparation, model training, and metric threshold validation.
 - `.github/workflows/monitor.yml`: manually or weekly generates an Evidently drift report and uploads it as a workflow artifact.
+- `.github/workflows/retrain.yml`: manually runs the Prefect drift-aware retraining flow and uploads retraining artifacts.
 
 Run the API locally:
 
@@ -248,6 +249,28 @@ Generated artifacts:
 - `reports/drift/data_drift_summary.json`
 
 The report monitors stable clinical and serving features such as hospital stay length, lab procedure count, medication count, visit history, diagnosis count, and admission/discharge/source IDs. The JSON summary is designed for automation, while the HTML report is useful for review and portfolio screenshots.
+
+## Prefect Retraining
+
+Run the drift-aware Prefect retraining flow:
+
+```bash
+make retrain
+```
+
+By default, the flow prepares data, generates the drift report, and skips training when no drift is detected. To force a full retraining and validation run:
+
+```bash
+python scripts/run_retraining_flow.py --force-retrain
+```
+
+If `MLFLOW_TRACKING_URI` is set and MLflow is running, you can also register the validated model:
+
+```bash
+python scripts/run_retraining_flow.py --force-retrain --register-on-success
+```
+
+The same flow is available in GitHub Actions as the `Retrain` workflow. Use the `force_retrain` input when you want to run the full training and validation path even if the drift report is clean.
 
 ## Dataset
 

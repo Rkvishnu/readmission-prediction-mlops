@@ -1,0 +1,69 @@
+name: Retrain
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_retrain:
+        description: "Force retraining even when no drift is detected"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+jobs:
+  retrain:
+    name: Drift-aware retraining
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: make install PYTHON=python
+
+      - name: Download source data
+        run: python scripts/download_data.py
+
+      - name: Run Prefect retraining flow
+        env:
+          PREFECT_HOME: .prefect
+          MPLCONFIGDIR: .matplotlib
+        run: |
+          args=()
+          if [[ "${{ inputs.force_retrain }}" == "true" ]]; then
+            args+=(--force-retrain)
+          fi
+          python scripts/run_retraining_flow.py "${args[@]}"
+
+      - name: Verify retraining artifacts
+        run: |
+          test -s reports/drift/data_drift_report.html
+          test -s reports/drift/data_drift_summary.json
+          if [[ "${{ inputs.force_retrain }}" == "true" ]]; then
+            test -s reports/metrics/training_metrics.json
+            test -s models/readmission_model.joblib
+          fi
+
+      - name: Upload retraining artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: prefect-retraining-artifacts
+          path: |
+            reports/drift/
+            reports/metrics/
+            reports/figures/
+            models/readmission_model.joblib
+          if-no-files-found: warn
