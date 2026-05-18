@@ -1,6 +1,52 @@
 # Hospital Readmission Risk Prediction MLOps
 
-Production-style MLOps project for predicting whether a patient is likely to be readmitted within 30 days after hospital discharge.
+End-to-end MLOps project for predicting whether a patient is likely to be readmitted within 30 days after hospital discharge.
+
+## Project Summary
+
+This project implements an end-to-end healthcare MLOps platform for hospital readmission risk prediction. It covers the full machine learning lifecycle: dataset ingestion, preprocessing, model training, experiment tracking, model registry promotion, API serving, containerization, Kubernetes deployment, service monitoring, data drift reporting, and drift-aware retraining.
+
+The system is designed as an end-to-end MLOps implementation rather than a standalone notebook. It includes GitHub Actions workflows for CI, training, monitoring, and retraining; MLflow for experiment tracking and model registry; FastAPI for inference; Docker and Kubernetes/Helm for deployment; Prometheus/Grafana for service observability; Evidently for drift reports; and Prefect for retraining orchestration.
+
+Current best model: `gradient_boosting`
+
+- ROC AUC: `0.6859`
+- Recall: `0.6068`
+- Serving endpoint: `POST /predict`
+- Monitoring endpoint: `GET /metrics/`
+
+## Architecture
+
+```mermaid
+flowchart LR
+    raw["UCI Diabetes Readmission Dataset"] --> ingest["Data Ingestion"]
+    ingest --> prep["Preprocessing and Feature Engineering"]
+    prep --> split["Train/Test/Reference Data"]
+
+    split --> train["Model Training"]
+    train --> eval["Evaluation and Metric Gates"]
+    eval --> mlflow["MLflow Tracking and Registry"]
+    eval --> artifacts["Model and Report Artifacts"]
+
+    mlflow --> api["FastAPI Inference Service"]
+    artifacts --> api
+    api --> docker["Docker Image"]
+    docker --> k8s["Kubernetes / Helm Deployment"]
+    k8s --> service["Readmission Prediction API"]
+
+    service --> prom["Prometheus Metrics"]
+    prom --> grafana["Grafana Dashboard"]
+
+    split --> evidently["Evidently Drift Report"]
+    evidently --> monitor["Monitor Workflow"]
+    evidently --> prefect["Prefect Retraining Flow"]
+    prefect --> train
+
+    ci["GitHub Actions CI"] --> docker
+    gha_train["Train Workflow"] --> train
+    gha_monitor["Monitor Workflow"] --> evidently
+    gha_retrain["Retrain Workflow"] --> prefect
+```
 
 ## Objective
 
@@ -94,10 +140,10 @@ export MLFLOW_TRACKING_URI=http://localhost:5000
 python scripts/register_model.py
 ```
 
-The script registers the best run as `readmission-risk` and assigns the `production` alias. The API can load this model with:
+The script registers the best run as `readmission-risk` and assigns a model registry alias. The API can load this model with:
 
 ```bash
-export MODEL_URI=models:/readmission-risk@production
+export MODEL_URI=models:/readmission-risk@<alias>
 ```
 
 Run checks:
